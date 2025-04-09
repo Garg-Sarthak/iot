@@ -1,0 +1,16 @@
+# Model files
+model/*.pkl
+
+# Jupyter Notebook checkpoints
+**/.ipynb_checkpoints
+
+# Cache & logs
+__pycache__/
+*.log
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/

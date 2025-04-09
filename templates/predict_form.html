@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predict Bus Occupancy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        form {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 400px;
+        }
+        input, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST">
+        <h2>📍 Predict Bus Occupancy</h2>
+        <label for="datetime">Date & Time:</label>
+        <input type="datetime-local" name="datetime" required>
+
+        <label for="latitude">Latitude:</label>
+        <input type="text" name="latitude" required>
+
+        <label for="longitude">Longitude:</label>
+        <input type="text" name="longitude" required>
+
+        <button type="submit">🚀 Predict</button>
+    </form>
+</body>
+</html>

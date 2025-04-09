@@ -1,0 +1,11 @@
+# flask
+# pandas
+# joblib
+# requests
+
+flask
+pandas
+joblib
+scikit-learn
+requests
+numpy

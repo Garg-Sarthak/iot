@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .result-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 400px;
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .datetime {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        p {
+            font-size: 22px;
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+            background: #28a745;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        a:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-card">
+        <h2>📊 Predicted Occupancy</h2>
+        <div class="datetime">{{ readable_time }}</div>
+        <p><strong>{{ prediction }}</strong></p>
+        <a href="/predict-form">🔁 Predict Again</a>
+    </div>
+</body>
+</html>

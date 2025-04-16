@@ -53,17 +53,28 @@ class NodeMCUData(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 def read_index(request: Request):
     # return templates.TemplateResponse("index.html", {"request": request})
+    latest_log = None
     try:
         with open("nodemcu_sensor_log.txt", "r") as f:
             lines = f.readlines()
-            latest_log = lines[-1].strip() if lines else None
+            if lines:
+                last_line = lines[-1].strip()
+                # Split timestamp and data
+                timestamp_str, data_str = last_line.split(" - ", 1)
+                
+                # Parse the data portion safely
+                try:
+                    log_data = eval(data_str)  # For prototype only
+                    log_data["received_time"] = datetime.fromisoformat(timestamp_str)
+                    latest_log = log_data
+                except Exception as e:
+                    logger.error(f"Error parsing log entry: {e}")
     except Exception as e:
-        latest_log = None
         logger.error(f"Error loading logs: {e}")
     
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "latest_log": latest_log  # Pass to template
+        "latest_log": latest_log  # Now passing a dict instead of raw string
     })
 
 @app.get("/predict", response_class=HTMLResponse)

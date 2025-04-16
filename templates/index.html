@@ -132,24 +132,23 @@
 
 <body>
     <h1>Occupancy Dashboard</h1>
-
-    <div class="latest-log">
-    <h2>Latest Bus Occupancy Data</h2>
-    
-    {% if latest_log %}
-        <div class="log-entry">
-            <p><strong>Device ID:</strong> {{ latest_log.deviceId }}</p>
-            <p><strong>Location:</strong> {{ latest_log.latitude|round(6) }}, {{ latest_log.longitude|round(6) }}</p>
-            <p><strong>Passengers:</strong> {{ latest_log.totalOccupancy }}</p>
-            <p class="timestamp">
-                Last updated: {{ latest_log.received_time.strftime('%Y-%m-%d %H:%M:%S') }} IST
-            </p>
-        </div>
-    {% else %}
-        <p>No data received yet</p>
+    <div class="log-entry">
+    <p><strong>Device ID:</strong> {{ latest_log.deviceId | default("N/A") }}</p>
+    <p><strong>Location:</strong> 
+        {% if latest_log.latitude is defined and latest_log.longitude is defined %}
+            {{ latest_log.latitude|round(6) }}, {{ latest_log.longitude|round(6) }}
+        {% else %}
+            Unknown
+        {% endif %}
+    </p>
+    <p><strong>Passengers:</strong> {{ latest_log.totalOccupancy | default(0) }}</p>
+    {% if latest_log.received_time is defined %}
+        <p class="timestamp">
+            Last updated: {{ latest_log.received_time.strftime('%Y-%m-%d %H:%M:%S') }} IST
+        </p>
     {% endif %}
 </div>
-
+    
     <label for="station">Select Station:</label>
     <select id="station">
         <option value="New Delhi">New Delhi</option>

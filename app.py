@@ -146,6 +146,19 @@ async def historical(station: str, day_of_week: int):
         "values": occupancy_levels,
         "categories": occupancy_names
     }
+# New endpoint to get latest log
+@app.get("/latest_log")
+def get_latest_log():
+    try:
+        with open("nodemcu_sensor_log.txt", "r") as f:
+            lines = f.readlines()
+            if not lines:
+                return {"message": "No logs found"}
+            last_line = lines[-1].strip()
+            return {"latest_log": last_line}
+    except Exception as e:
+        logger.error(f"Error reading log file: {e}")
+        return {"error": "Could not retrieve logs"}
 
 # --- NEW Endpoint to receive NodeMCU data ---
 @app.post("/log_data")
@@ -174,6 +187,7 @@ async def receive_nodemcu_log(data: NodeMCUData, request: Request):
     except Exception as e:
         logger.error(f"Failed to write to log file: {e}")
         # Optional: raise HTTPException(status_code=500, detail="Server failed to log data")
+    
 
     # Option 2: Store in a database (requires setting up DB connection, e.g., using SQLAlchemy or databases library)
     # await database.execute("INSERT INTO sensor_logs(...) VALUES (...)")

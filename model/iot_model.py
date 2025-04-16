@@ -1,14 +1,16 @@
 import joblib
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 class IOTOccupancyModel:
     def __init__(self):
         try:
-            self.model = joblib.load("model/rf_model.pkl")
+            self.model = joblib.load("model/decision_tree_model.pkl")
         except FileNotFoundError:
-            print("❌ Model not trained yet. Please train the model first.")
-
+            print("Model not trained yet. Please train the model first.")
+            self.model = None
     def predict(self, features):
-        df = pd.DataFrame(features, columns=["day_of_year", "time_minutes", "latitude", "longitude"])
+        if self.model is None:
+            return "No model loaded."
+        df = pd.DataFrame(features, columns=["DayOfWeek", "TimeOfDayMinutes", "Latitude", "Longitude"])
         return self.model.predict(df)

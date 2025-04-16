@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Transport Occupancy Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            color: #0056b3;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select,
+        input {
+            width: 200px;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #prediction {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .popular-times {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .popular-times-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .days-nav {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .day-tab {
+            padding: 8px 12px;
+            margin-right: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #5f6368;
+            position: relative;
+        }
+
+        .day-tab.active {
+            color: #1a73e8;
+        }
+
+        .day-tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1a73e8;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ea4335;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .live-text {
+            font-weight: bold;
+            color: #ea4335;
+            margin-right: 5px;
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+
+        .error-message {
+            color: #ea4335;
+            padding: 10px;
+            background-color: #fdeaea;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Occupancy Dashboard</h1>
+
+    <label for="station">Select Station:</label>
+    <select id="station">
+        <option value="New Delhi">New Delhi</option>
+        <option value="Rajiv Chowk">Rajiv Chowk</option>
+        <option value="Kashmere Gate">Kashmere Gate</option>
+        <option value="Chandni Chowk">Chandni Chowk</option>
+        <option value="AIIMS">AIIMS</option>
+        <option value="Hauz Khas">Hauz Khas</option>
+        <option value="INA">INA</option>
+        <option value="Karol Bagh">Karol Bagh</option>
+        <option value="Lajpat Nagar">Lajpat Nagar</option>
+        <option value="Mandi House">Mandi House</option>
+        <option value="Rajendra Place">Rajendra Place</option>
+        <option value="Patel Chowk">Patel Chowk</option>
+        <option value="Jor Bagh">Jor Bagh</option>
+        <option value="Green Park">Green Park</option>
+        <option value="Malviya Nagar">Malviya Nagar</option>
+        <option value="Saket">Saket</option>
+        <option value="Qutab Minar">Qutab Minar</option>
+        <option value="Chhatarpur">Chhatarpur</option>
+        <option value="Dwarka Sector 21">Dwarka Sector 21</option>
+        <option value="Noida City Centre">Noida City Centre</option>
+    </select>
+
+    <label for="day">Select Day (1 for Monday to 7 for Sunday):</label>
+    <input type="number" id="day" min="1" max="7" value="3" />
+
+    <label for="time">Select Time:</label>
+    <input type="time" id="time" />
+
+    <button onclick="predictOccupancy()">Predict Occupancy</button>
+    <button onclick="loadHistorical()">Show Historical Data</button>
+    <div id="prediction"></div>
+    <div id="errorMessage" class="error-message"></div>
+    <div class="popular-times">
+        <div class="popular-times-header">Popular times</div>
+        
+        <div class="days-nav">
+            <div class="day-tab" data-day="1">MON</div>
+            <div class="day-tab" data-day="2">TUE</div>
+            <div class="day-tab active" data-day="3">WED</div>
+            <div class="day-tab" data-day="4">THU</div>
+            <div class="day-tab" data-day="5">FRI</div>
+            <div class="day-tab" data-day="6">SAT</div>
+            <div class="day-tab" data-day="7">SUN</div>
+        </div>
+        <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span class="live-text">Live:</span>
+            <span id="liveStatus">Less busy than usual</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dayTabs = document.querySelectorAll('.day-tab');
+            dayTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    dayTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('day').value = this.dataset.day;                    
+                    loadHistorical();
+                });
+            });
+            document.getElementById('day').value = 3;            
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').value = `${hours}:${minutes}`;            
+            loadHistorical();
+        });
+
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(":").map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        function formatHourLabel(hour) {
+            if (hour === 0) return '12a';
+            if (hour < 12) return `${hour}a`;
+            if (hour === 12) return '12p';
+            return `${hour-12}p`;
+        }
+
+        async function predictOccupancy() {
+            const station = document.getElementById("station").value;
+            const day = document.getElementById("day").value;
+            const timeStr = document.getElementById("time").value;
+            const time = timeToMinutes(timeStr);
+
+            const coords = {
+                "New Delhi": [28.642194, 77.221500],
+                "Rajiv Chowk": [28.632818, 77.218264],
+                "Kashmere Gate": [28.667500, 77.228167],
+                "Chandni Chowk": [28.657850, 77.230140],
+                "AIIMS": [28.614740, 77.211910],
+                "Hauz Khas": [28.543350, 77.206670],
+                "INA": [28.575260, 77.209350],
+                "Karol Bagh": [28.644000, 77.188550],
+                "Lajpat Nagar": [28.570790, 77.236530],
+                "Mandi House": [28.625880, 77.234100],
+                "Rajendra Place": [28.642500, 77.178150],
+                "Patel Chowk": [28.622950, 77.213890],
+                "Jor Bagh": [28.587080, 77.212090],
+                "Green Park": [28.559790, 77.206820],
+                "Malviya Nagar": [28.527980, 77.205650],
+                "Saket": [28.518000, 77.206000],
+                "Qutab Minar": [28.513020, 77.186480],
+                "Chhatarpur": [28.506710, 77.174840],
+                "Dwarka Sector 21": [28.548000, 77.038000],
+                "Noida City Centre": [28.574000, 77.355000],
+            };
+
+            const [lat, lon] = coords[station];
+            
+            try {
+                const res = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        day_of_week: parseInt(day),
+                        time_of_day: time,
+                        latitude: lat,
+                        longitude: lon,
+                    }),
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Error: ${res.status} ${res.statusText}`);
+                }
+
+                const data = await res.json();
+                document.getElementById("prediction").innerText = `Predicted Occupancy: ${data.predicted_occupancy}`;
+                
+                // Hide any previous error
+                document.getElementById("errorMessage").style.display = "none";
+            } catch (error) {
+                console.error("Prediction error:", error);
+                const errorElem = document.getElementById("errorMessage");
+                errorElem.textContent = `Failed to make prediction: ${error.message}`;
+                errorElem.style.display = "block";
+            }
+        }
+
+        async function loadHistorical() {
+            const station = document.getElementById("station").value;
+            const day = document.getElementById("day").value;
+            
+            try {
+                // Display loading state
+                const ctx = document.getElementById("barChart").getContext("2d");
+                if (window.myChart) {
+                    window.myChart.destroy();
+                }
+                
+                // Make API request
+                const res = await fetch(`/historical?station=${station}&day_of_week=${day}`);
+                
+                if (!res.ok) {
+                    throw new Error(`Server returned ${res.status}: ${res.statusText}`);
+                }
+                
+                const data = await res.json();
+                console.log("Historical data:", data);
+                
+                // Get current hour for highlighting
+                const currentHour = new Date().getHours();
+                
+                // Update live status based on current hour's occupancy
+                if (data.categories && data.categories[currentHour]) {
+                    updateLiveStatus(data.categories[currentHour]);
+                }
+                
+                // Render chart
+                renderOccupancyChart(data, currentHour);
+                
+                // Hide any previous error
+                document.getElementById("errorMessage").style.display = "none";
+            } catch (error) {
+                console.error("Error loading historical data:", error);
+                
+                // Display error message
+                const errorElem = document.getElementById("errorMessage");
+                errorElem.textContent = `Failed to load historical data: ${error.message}`;
+                errorElem.style.display = "block";
+                
+                // Clear live status
+                document.getElementById("liveStatus").textContent = "No data available";
+            }
+        }
+        
+        function updateLiveStatus(currentOccupancy) {
+            const liveStatus = document.getElementById('liveStatus');
+            
+            switch (currentOccupancy) {
+                case 'low':
+                    liveStatus.textContent = 'Less busy than usual';
+                    break;
+                case 'medium':
+                    liveStatus.textContent = 'Typically busy';
+                    break;
+                case 'high':
+                    liveStatus.textContent = 'Busier than usual';
+                    break;
+                default:
+                    liveStatus.textContent = 'No data available';
+            }
+        }
+        
+        function renderOccupancyChart(data, currentHour) {
+            const ctx = document.getElementById("barChart").getContext("2d");            
+            if (window.myChart) {
+                window.myChart.destroy();
+            }            
+            let hours, hourLabels, values, categories;            
+            if (data.hours) {
+                hours = data.hours;
+                hourLabels = data.labels;
+                values = data.values;
+                categories = data.categories;
+            } else if (data.labels) {
+                hours = data.labels;
+                hourLabels = hours.map(h => formatHourLabel(h));
+                values = data.values;
+                categories = data.categories;
+            } else {
+                throw new Error("Unexpected API response format");
+            }
+            
+            const businessHours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+            const businessIndices = businessHours.map(hour => {
+                return hours.indexOf(hour) !== -1 ? hours.indexOf(hour) : hours.findIndex(h => h === hour);
+            }).filter(index => index !== -1);
+            
+            const displayHours = businessIndices.map(i => hours[i]);
+            const displayLabels = businessIndices.map(i => hourLabels[i] || formatHourLabel(hours[i]));
+            const displayValues = businessIndices.map(i => values[i]);            
+            const barColors = displayHours.map(hour => 
+                hour === currentHour ? '#ea4335' : '#4285f4'
+            );            
+            window.myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        data: displayValues,
+                        backgroundColor: barColors,
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        borderRadius: 4,
+                        barThickness: 18,
+                        maxBarThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    if (value === 1) return 'Low occupancy';
+                                    if (value === 2) return 'Medium occupancy';
+                                    if (value === 3) return 'High occupancy';
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 3.5,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    if (value === 1) return 'Low';
+                                    if (value === 2) return 'Medium';
+                                    if (value === 3) return 'High';
+                                    return '';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

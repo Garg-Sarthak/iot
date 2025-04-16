@@ -1,17 +1,23 @@
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np 
+import pandas as pd 
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report, accuracy_score
 import joblib
+import os
 
+df = pd.read_csv(r'C:\Users\Vedant\Desktop\IOTPROJECT\data\dataset.csv')
+print("Columns:", df.columns.tolist())
 
-df = pd.read_csv("data/synthetic_occupancy_data.csv")
+X = df[["DayOfWeek", "TimeOfDayMinutes", "Latitude", "Longitude"]]
+y = df["Occupancy"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.6, random_state=42)
+tree_model = DecisionTreeClassifier(random_state=42)
+tree_model.fit(X_train, y_train)
+y_pred = tree_model.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+os.makedirs("model", exist_ok=True)
+joblib.dump(tree_model, "model/decision_tree_model.pkl")
 
-X = df[["day_of_year", "time_minutes", "latitude", "longitude"]]
-y = df["occupancy"]
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
-rf = RandomForestClassifier(random_state=42)
-rf.fit(X_train, y_train)
-
-joblib.dump(rf, "model/rf_model.pkl")
-print("Model trained and saved!")
+print("Decision Tree model trained and saved successfully!")

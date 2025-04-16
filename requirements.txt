@@ -1,11 +1,5 @@
-# flask
-# pandas
-# joblib
-# requests
-
-flask
-pandas
+fastapi
+uvicorn
 joblib
-scikit-learn
-requests
-numpy
+pandas
+jinja2

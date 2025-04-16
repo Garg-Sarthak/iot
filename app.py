@@ -52,7 +52,19 @@ class NodeMCUData(BaseModel):
 # --- Existing Endpoints ---
 @app.get("/", response_class=HTMLResponse)
 def read_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    # return templates.TemplateResponse("index.html", {"request": request})
+    try:
+        with open("nodemcu_sensor_log.txt", "r") as f:
+            lines = f.readlines()
+            latest_log = lines[-1].strip() if lines else None
+    except Exception as e:
+        latest_log = None
+        logger.error(f"Error loading logs: {e}")
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "latest_log": latest_log  # Pass to template
+    })
 
 @app.get("/predict", response_class=HTMLResponse)
 def predict_form(request: Request):

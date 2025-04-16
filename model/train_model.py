@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report, accuracy_score
 import joblib
 import os
 
-df = pd.read_csv(r'C:\Users\Vedant\Desktop\IOTPROJECT\data\dataset.csv')
+df = pd.read_csv(r'data/dataset.csv')
 print("Columns:", df.columns.tolist())
 
 X = df[["DayOfWeek", "TimeOfDayMinutes", "Latitude", "Longitude"]]

@@ -3,3 +3,5 @@ uvicorn
 joblib
 pandas
 jinja2
+scikit-learn
+pydantic

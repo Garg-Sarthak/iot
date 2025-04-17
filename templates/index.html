@@ -144,7 +144,7 @@
     <p><strong>Passengers:</strong> {{ latest_log.totalOccupancy | default(0) }}</p>
     {% if latest_log.received_time is defined %}
         <p class="timestamp">
-            Last updated: {{ latest_log.received_time.strftime('%Y-%m-%d %H:%M:%S') }} IST
+            Last updated: {{ latest_log.received_time.strftime('%Y-%m-%d %H:%M:%S') }} GMT
         </p>
     {% endif %}
 </div>

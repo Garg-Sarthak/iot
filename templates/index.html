@@ -180,7 +180,7 @@
     <input type="time" id="time" />
 
     <button onclick="predictOccupancy()">Predict Occupancy</button>
-    <button onclick="loadHistorical()">Show Historical Data</button>
+<!--     <button onclick="loadHistorical()">Show Historical Data</button> -->
     <div id="prediction"></div>
     <div id="errorMessage" class="error-message"></div>
     <div class="popular-times">
@@ -203,6 +203,7 @@
         <div class="chart-container">
             <canvas id="barChart"></canvas>
         </div>
+        <button onclick="loadHistorical()">Show Historical Data</button>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
